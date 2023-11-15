@@ -1,21 +1,11 @@
-import { signIn, signOut, useSession, getSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect } from "react";
 
 import { api } from "~/utils/api";
-
-export default function Home() {
-  useEffect(() => {
-    const fetchData = async () => {
-      const session = await getSession();
-      const redirectTo = "/memberAccessPage/memberHome";
-      if (session?.user) {
-        window.location.href = redirectTo;
-      }
-    };
-    fetchData();
-  }, []);
+import AddForm from "~/components/addForm";
+export default function HomeMember() {
+  const hello = api.form.hello.useQuery({ text: "from tRPC" });
 
   return (
     <>
@@ -26,11 +16,12 @@ export default function Home() {
       <main className=" flex min-h-screen flex-col items-center justify-center bg-slate-800">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-            Welcome To Form Creation Website By JM
+            Welcome To Form Creation Website By JMM
           </h1>
+        <AddForm />
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">
-              Sign In Now To Continue!
+              Sign Out
             </p>
             <AuthShowcase />
           </div>
@@ -47,7 +38,6 @@ function AuthShowcase() {
     undefined, // no input
     { enabled: sessionData?.user !== undefined }
   );
-  
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
@@ -57,9 +47,9 @@ function AuthShowcase() {
       </p>
       <button
         className="rounded-md bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-        onClick={sessionData ? () => void signOut() : () => void signIn()}
+        onClick={() => void signOut()}
       >
-        {sessionData ? "Sign out" : "Sign in"}
+        Sign out
       </button>
     </div>
   );
