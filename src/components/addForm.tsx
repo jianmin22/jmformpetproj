@@ -4,9 +4,10 @@ import { api } from "~/utils/api";
 
 import { getSession } from 'next-auth/react';
 
-
-const AddForm = () => {
-  
+interface AddFormProps {
+  onFormAdded: Function;
+}
+const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
   const questionsArray = [
     {
       questionNumber: 1,
@@ -70,8 +71,17 @@ const AddForm = () => {
         return { error: 'User not authenticated' };
       }
       const userId = session.user.id;
-      await createForm.mutateAsync({ userId,questions: questionsArray });
+
+      // Prompt user for form name
+      const enteredFormName = window.prompt("Enter a name for the form:");
+      if (!enteredFormName) {
+        // User canceled or entered an empty name
+        return;
+      }
+
+      await createForm.mutateAsync({ formName: enteredFormName, questions: questionsArray });
       console.log("Form created successfully");
+      onFormAdded();
     } catch (err) {
       console.error("Error Adding Form", err);
     }
@@ -80,7 +90,7 @@ const AddForm = () => {
   return (
     <div className="flex flex-col items-center justify-center">
       <div
-        className="cursor-pointer rounded-full bg-blue-500 p-4 text-white"
+        className="cursor-pointer rounded-full bg-slate-400 p-4 text-white"
         onClick={onClickHandler}
       >
         <Plus size={24} color="white" />

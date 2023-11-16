@@ -1,11 +1,16 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
+import React, {useState, useEffect} from "react";
 
 import { api } from "~/utils/api";
 import AddForm from "~/components/addForm";
+import ShowAllFormNames from "~/components/showAllFormNames";
 export default function HomeMember() {
-  const hello = api.form.hello.useQuery({ text: "from tRPC" });
+  const [refreshKey, setRefreshKey] = useState(0);
+  const handleFormAdded = () => {
+    setRefreshKey((prevKey) => prevKey + 1);
+  };
 
   return (
     <>
@@ -18,7 +23,8 @@ export default function HomeMember() {
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             Welcome To Form Creation Website By JMM
           </h1>
-        <AddForm />
+          <AddForm onFormAdded={handleFormAdded}/>
+          <ShowAllFormNames key={refreshKey} />
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">
               Sign Out

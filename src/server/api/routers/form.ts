@@ -18,10 +18,33 @@ export const formRouter = createTRPCRouter({
     return "you can now see this secret message!";
   }),
 
+  getFormNamesByID: publicProcedure.query(async({ ctx }) => {
+    try {
+      const userID = ctx.session?.user.id;
+  
+      if (!userID) {
+        throw new Error("User not authenticated");
+      }
+  
+      const userForms = await ctx.db.form.findMany({
+        where: {
+          createdUserID: userID,
+        },
+        select:{
+          formName:true
+        }
+      });
+      return userForms;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to retrieve forms");
+    }
+  }),
+
   createForm: publicProcedure
     .input(
       z.object({
-        userId: z.string(),
+        formName: z.string(),
         questions: z.array(
           z.object({
             questionNumber: z.number(),
@@ -30,26 +53,29 @@ export const formRouter = createTRPCRouter({
             options: z.array(
               z.object({
                 option: z.string(),
-              })
+              }),
             ),
-          })
+          }),
         ),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
-       
+        const userID = ctx.session?.user.id;
 
-        // Step 2: Create a new Form
+        if (!userID) {
+          throw new Error("User not authenticated");
+        }
         const createdForm = await ctx.db.form.create({
           data: {
-            createdUserID: input.userId,
+            createdUserID: userID,
+            formName: input.formName,
           },
         });
 
-        // Step 3 and 4: Create Questions and Options
         for (const questionData of input.questions) {
-          const { questionNumber, question, questionType, options } = questionData;
+          const { questionNumber, question, questionType, options } =
+            questionData;
 
           const createdQuestion = await ctx.db.question.create({
             data: {
@@ -60,7 +86,6 @@ export const formRouter = createTRPCRouter({
             },
           });
 
-          // Create QuestionOptions if the question has options
           if (options && options.length > 0) {
             for (const optionData of options) {
               await ctx.db.questionOption.create({
@@ -72,21 +97,19 @@ export const formRouter = createTRPCRouter({
             }
           }
 
-          // Step 5: Create UserQnsAns for each question
           await ctx.db.userQnsAns.create({
             data: {
-              userID: input.userId,
+              userID: userID,
               qnsID: createdQuestion.qnsID,
               formID: createdForm.formID,
               lastUpdated: new Date(),
             },
           });
         }
-console.log("b");
-        return { message: 'Form created successfully' };
+        return { message: "Form created successfully" };
       } catch (error) {
         console.error(error);
-        throw new Error('Failed to create form');
+        throw new Error("Failed to create form");
       }
     }),
 });
