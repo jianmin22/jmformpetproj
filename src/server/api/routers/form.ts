@@ -4,7 +4,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-
+import cloudinary from "~/server/cloudinary";
 export const formRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string() }))
@@ -18,28 +18,103 @@ export const formRouter = createTRPCRouter({
     return "you can now see this secret message!";
   }),
 
-  getFormNamesByID: publicProcedure.query(async({ ctx }) => {
+  getFormNamesByID: publicProcedure.query(async ({ ctx }) => {
     try {
       const userID = ctx.session?.user.id;
-  
+
       if (!userID) {
         throw new Error("User not authenticated");
       }
-  
+
       const userForms = await ctx.db.form.findMany({
         where: {
           createdUserID: userID,
         },
-        select:{
-          formName:true
-        }
+        select: {
+          formID: true,
+          formName: true,
+          creationDate: true
+        },        
       });
+      userForms.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime());
+
       return userForms;
     } catch (error) {
       console.error(error);
       throw new Error("Failed to retrieve forms");
     }
   }),
+
+  getFormDetailsByFormID: publicProcedure
+    .input(z.object({ formID: z.string() }))
+    .query(async ({ input, ctx }) => {
+      try {
+        const userID = ctx.session?.user.id;
+
+        if (!userID) {
+          throw new Error("User not authenticated");
+        }
+        if (!input.formID || input.formID.length == 0) {
+          throw new Error("Form ID is invalid");
+        }
+
+        const formDetails = await ctx.db.form.findUnique({
+          where: { formID: input.formID },
+          include: { questions: { include: { options: true } } },
+        });
+
+        if (!formDetails) {
+          throw new Error("Form not found");
+        }
+
+        const userQnsAns = await ctx.db.userQnsAns.findMany({
+          where: {
+            formID: input.formID,
+            userID: userID,
+          },
+        });
+
+        const result = {
+          ...formDetails,
+          userQnsAns,
+        };
+
+        return result;
+      } catch (error) {
+        console.error(error);
+        throw new Error(
+          "Failed to retrieve form details and user question answers",
+        );
+      }
+    }),
+
+  getOptionDetails: publicProcedure
+    .input(z.object({ optionIDs: z.array(z.string()) }))
+    .query(async ({ input, ctx }) => {
+      try {
+        const userID = ctx.session?.user.id;
+
+        if (!userID) {
+          throw new Error("User not authenticated");
+        }
+        if (!input.optionIDs || input.optionIDs.length === 0) {
+          throw new Error("Option IDs are invalid");
+        }
+
+        const optionDetails = await ctx.db.questionOption.findMany({
+          where: { qnsOptionID: { in: input.optionIDs } },
+        });
+
+        if (!optionDetails || optionDetails.length === 0) {
+          throw new Error("No options found");
+        }
+
+        return optionDetails;
+      } catch (error) {
+        console.error(error);
+        throw new Error("Failed to retrieve option details");
+      }
+    }),
 
   createForm: publicProcedure
     .input(
@@ -110,6 +185,39 @@ export const formRouter = createTRPCRouter({
       } catch (error) {
         console.error(error);
         throw new Error("Failed to create form");
+      }
+    }),
+    uploadImage: publicProcedure
+    .input(z.object({ imageFile: z.object({ path: z.string() }) }))
+    .mutation(async ({ input }) => {
+      try {
+        const { imageFile } = input;
+
+        const cloudinaryResponse = await cloudinary.uploader.upload(imageFile.path, {
+          folder: 'images',
+        });
+
+        return { imageUrl: cloudinaryResponse.secure_url };
+      } catch (error) {
+        console.error(error);
+        throw new Error('Failed to upload image');
+      }
+    }),
+    uploadFile: publicProcedure
+    .input(z.object({ file: z.object({ path: z.string() }) }))
+    .mutation(async ({ input }) => {
+      try {
+        const { file } = input;
+
+        const cloudinaryResponse = await cloudinary.uploader.upload(file.path, {
+          folder: 'files',
+          resource_type: 'auto', // Automatically detect the resource type
+        });
+
+        return { fileUrl: cloudinaryResponse.secure_url };
+      } catch (error) {
+        console.error(error);
+        throw new Error('Failed to upload file to Cloudinary');
       }
     }),
 });

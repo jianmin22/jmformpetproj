@@ -88,5 +88,7 @@ model UserQnsAns {
   formID       String
   answer       String?
   qnsOptionID String?
+  qnsOptionIDs String[]
+  dateTimeAns DateTime?
   lastUpdated  DateTime @default(now())
 }

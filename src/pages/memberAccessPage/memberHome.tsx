@@ -1,12 +1,21 @@
-import { signIn, signOut, useSession } from "next-auth/react";
+import {signOut, useSession, getSession } from "next-auth/react";
 import Head from "next/head";
-import Link from "next/link";
-import React, {useState, useEffect} from "react";
+import React, {useState,useEffect} from "react";
 
 import { api } from "~/utils/api";
 import AddForm from "~/components/addForm";
 import ShowAllFormNames from "~/components/showAllFormNames";
 export default function HomeMember() {
+  useEffect(() => {
+    const fetchData = async () => {
+      const session = await getSession();
+      const redirectTo = "/";
+      if (!session?.user) {
+        window.location.href = redirectTo;
+      }
+    };
+    fetchData();
+  }, []);
   const [refreshKey, setRefreshKey] = useState(0);
   const handleFormAdded = () => {
     setRefreshKey((prevKey) => prevKey + 1);
