@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { api } from "~/utils/api";
+import LoadingComponent from "./loadingComponent";
 
 interface RadioButtonFieldProps {
   question: string;
@@ -21,25 +22,23 @@ const RadioButtonField: React.FC<RadioButtonFieldProps> = ({
   if (!ansOptionID) {
     ansOptionID = "";
   }
-  const [ansOptionIDValue, setAnsOptionIDValue] = useState(ansOptionID);
   const { data: optionDetails, isLoading: dataLoading } =
     api.form.getOptionDetails.useQuery({ optionIDs });
   const redirectTo = "/";
   if (dataLoading) {
-    return <div>Loading</div>;
+    return <LoadingComponent />;
   } else if (!optionDetails) {
     window.location.href = redirectTo;
     return;
   }
   const handleOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedOption = e.target.value;
-    setAnsOptionIDValue(selectedOption);
     onChange(selectedOption);
   };
 
   return (
     <div>
-      <label className="text-white dark:text-gray-200" id={questionID}>
+      <label className="text-black" id={questionID}>
         {question}
       </label>
       <div className="mt-2">
@@ -49,7 +48,7 @@ const RadioButtonField: React.FC<RadioButtonFieldProps> = ({
               type="radio"
               id={`${userQnsAnsID}_${option.qnsOptionID}`}
               value={option.qnsOptionID}
-              checked={ansOptionIDValue === option.qnsOptionID}
+              checked={ansOptionID === option.qnsOptionID}
               onChange={handleOptionChange}
               className="mr-2"
             />

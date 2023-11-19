@@ -18,31 +18,22 @@ const InputField: React.FC<InputFieldProps> = ({
   if (!answer) {
     answer = "";
   }
-  const [inputValue, setInputValue] = useState(answer);
-
-  useEffect(() => {
-    if (!answer) {
-      answer = "";
-    }
-    setInputValue(answer);
-  }, [answer]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newInputValue = e.target.value;
-    setInputValue(newInputValue);
     onChange(newInputValue);
   };
   return (
     <div>
-      <label className="text-white dark:text-gray-200" htmlFor={questionID}>
+      <label className="text-black" htmlFor={questionID}>
         {question}
       </label>
       <input
         type="text"
         id={userQnsAnsID}
-        value={inputValue}
+        value={answer}
         onChange={handleInputChange}
-        className="mt-2 block w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:focus:border-blue-500"
+        className="mt-2 block w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring"
       />
     </div>
   );

@@ -16,27 +16,21 @@ const DateField: React.FC<DateFieldProps> = ({
   dateAns,
   onChange,
 }) => {
-  const [dateValue, setDateValue] = useState(dateAns);
-
-  useEffect(() => {
-    setDateValue(dateAns);
-  }, [dateAns]);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.valueAsDate;
-    setDateValue(selectedDate);
     onChange(selectedDate);
   };
 
   return (
     <div>
-      <label className="text-white dark:text-gray-200" htmlFor={questionID}>
+      <label className="text-black" htmlFor={questionID}>
         {question}
       </label>
       <input
         type="date"
         id={userQnsAnsID}
-        value={dateValue ? dateValue.toISOString().split("T")[0] : ""}
+        value={dateAns ? dateAns.toISOString().split("T")[0] : ""}
         onChange={handleDateChange}
         className="mt-2 block w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:focus:border-blue-500"
       />

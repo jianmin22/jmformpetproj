@@ -1,7 +1,7 @@
-import {signOut, useSession, getSession } from "next-auth/react";
+import { signOut, useSession, getSession } from "next-auth/react";
 import Head from "next/head";
-import React, {useState,useEffect} from "react";
-
+import React, { useState, useEffect } from "react";
+import NavBar from "~/components/navBar";
 import { api } from "~/utils/api";
 import AddForm from "~/components/addForm";
 import ShowAllFormNames from "~/components/showAllFormNames";
@@ -27,45 +27,25 @@ export default function HomeMember() {
         <title>JM FORM</title>
         <link rel="icon" href="" />
       </Head>
-      <main className=" flex min-h-screen flex-col items-center justify-center bg-slate-800">
+      <NavBar />
+      <main className=" bg-theme_purple flex min-h-screen flex-col items-center justify-center">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-            Welcome To Form Creation Website By JMM
-          </h1>
-          <AddForm onFormAdded={handleFormAdded}/>
-          <ShowAllFormNames key={refreshKey} />
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              Sign Out
-            </p>
-            <AuthShowcase />
+          <div className="flex justify-center">
+            <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem] text-center">
+              <span className="text-theme_orange">Welcome </span>
+              <span className="text-theme_green">To </span>
+              <span className="text-theme_orange">
+                Form Creation Website By{" "}
+              </span>
+              <span className="text-theme_green">JMM</span>
+            </h1>
           </div>
+
+          <AddForm onFormAdded={handleFormAdded} />
+          <ShowAllFormNames key={refreshKey} />
         </div>
       </main>
     </>
   );
 }
 
-function AuthShowcase() {
-  const { data: sessionData } = useSession();
-
-  const { data: secretMessage } = api.form.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined }
-  );
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p className="text-center text-2xl text-white">
-        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-        {secretMessage && <span> - {secretMessage}</span>}
-      </p>
-      <button
-        className="rounded-md bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-        onClick={() => void signOut()}
-      >
-        Sign out
-      </button>
-    </div>
-  );
-}

@@ -5,6 +5,18 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import cloudinary from "~/server/cloudinary";
+type UserQnsAnsType = {
+  userQnsAnsID: string;
+  userID: string;
+  qnsID: string;
+  formID: string;
+  answer: string | null;
+  public_id: string | null;
+  qnsOptionID: string | null;
+  qnsOptionIDs: string[];
+  dateTimeAns: Date | null;
+  lastUpdated: Date | null;
+};
 export const formRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string() }))
@@ -187,37 +199,140 @@ export const formRouter = createTRPCRouter({
         throw new Error("Failed to create form");
       }
     }),
-    uploadImage: publicProcedure
-    .input(z.object({ imageFile: z.object({ path: z.string() }) }))
-    .mutation(async ({ input }) => {
+    deleteForm: publicProcedure
+    .input(z.object({ formID: z.string() }))
+    .mutation(async ({ ctx, input }) => {
       try {
-        const { imageFile } = input;
+        const userID = ctx.session?.user.id;
 
-        const cloudinaryResponse = await cloudinary.uploader.upload(imageFile.path, {
-          folder: 'images',
+        if (!userID) {
+          throw new Error("User not authenticated");
+        }
+
+        // Delete userQnsAns entries related to the form
+        await ctx.db.userQnsAns.deleteMany({
+          where: {
+            formID: input.formID,
+          },
         });
 
-        return { imageUrl: cloudinaryResponse.secure_url };
+        const qnsIDs = await ctx.db.question.findMany({
+          where: {
+            formID: input.formID,
+          },
+          select: {
+            qnsID: true,
+          },
+        });
+
+        // Extract qnsID values from the result
+        const qnsIDValues = qnsIDs.map((qnsID) => qnsID.qnsID);
+        // Delete questionOptions related to the form's questions
+        await ctx.db.questionOption.deleteMany({
+          where: {
+            qnsID: {
+              in: qnsIDValues,
+            },
+          },
+        });
+        
+        // Delete questions related to the form
+        await ctx.db.question.deleteMany({
+          where: {
+            formID: input.formID,
+          },
+        });
+
+        // Delete the form itself
+        await ctx.db.form.delete({
+          where: {
+            formID: input.formID,
+          },
+        });
+
+        return { message: "Form and related data deleted successfully" };
       } catch (error) {
         console.error(error);
-        throw new Error('Failed to upload image');
+        throw new Error("Failed to delete form and related data");
       }
     }),
+    updateAnswer: publicProcedure
+    .input(
+      z.object({
+        answers: z.array( z.object({
+          userQnsAnsID: z.string(),
+          userID: z.string(),
+          qnsID: z.string(),
+          formID: z.string(),
+          answer: z.string().nullable(),
+          public_id: z.string().nullable(),
+          qnsOptionID: z.string().nullable(),
+          qnsOptionIDs: z.array(z.string()),
+          dateTimeAns: z.date().nullable(),
+          lastUpdated: z.date().nullable(),
+        }),),
+      }),
+    )
+  .mutation(async ({ ctx, input }) => {
+    try {
+      const userID = ctx.session?.user.id;
+
+      if (!userID) {
+        throw new Error("User not authenticated");
+      }
+      for (const answerData of input.answers) {
+        const {
+          userQnsAnsID,
+          answer,
+          public_id,
+          qnsOptionID,
+          qnsOptionIDs,
+          dateTimeAns
+        } = answerData;
+
+        await ctx.db.userQnsAns.update({
+          where: {
+            userQnsAnsID: userQnsAnsID,
+          },
+          data: {
+            answer: answer,
+            public_id: public_id,
+            qnsOptionID: qnsOptionID,
+            qnsOptionIDs: { set: qnsOptionIDs },
+            dateTimeAns: dateTimeAns
+          },
+        });
+      }
+
+      return { message: "Answers updated successfully" };
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to update answers");
+    }
+  }),
+
+
     uploadFile: publicProcedure
     .input(z.object({ file: z.object({ path: z.string() }) }))
     .mutation(async ({ input }) => {
       try {
         const { file } = input;
-
-        const cloudinaryResponse = await cloudinary.uploader.upload(file.path, {
-          folder: 'files',
-          resource_type: 'auto', // Automatically detect the resource type
-        });
-
+  
+        // Assuming 'file' is a FormData instance
+        const cloudinaryResponse = await cloudinary.uploader.upload(
+          file.path,
+          {
+            folder: 'files',
+            resource_type: 'auto', // Automatically detect the resource type
+          }
+        );
+  
         return { fileUrl: cloudinaryResponse.secure_url };
       } catch (error) {
         console.error(error);
         throw new Error('Failed to upload file to Cloudinary');
       }
     }),
+  
+
 });

@@ -75,7 +75,8 @@ const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
       // Prompt user for form name
       const enteredFormName = window.prompt("Enter a name for the form:");
       if (!enteredFormName) {
-        // User canceled or entered an empty name
+        const redirectTo = "/";
+        window.location.href = redirectTo;
         return;
       }
 
@@ -90,7 +91,7 @@ const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
   return (
     <div className="flex flex-col items-center justify-center">
       <div
-        className="cursor-pointer rounded-full bg-slate-400 p-4 text-white"
+        className="cursor-pointer rounded-full bg-theme_green p-4 text-white"
         onClick={onClickHandler}
       >
         <Plus size={24} color="white" />

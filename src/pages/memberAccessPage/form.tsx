@@ -6,11 +6,21 @@ import MultiSelectCheckboxes from "~/components/multiSelectCheckboxes";
 import RadioButtonField from "~/components/radioButtonField";
 import DateField from "~/components/dateField";
 import TimeField from "~/components/timeField";
+import ImageUploadField from "~/components/imageUploadField";
+import _ from 'lodash';
+import { Download } from "lucide-react";
+
+import { CldUploadWidgetResults } from "next-cloudinary";
 import { api } from "~/utils/api";
-import { debounce } from "lodash";
+import { MoveLeft } from "lucide-react";
+import { result } from "lodash";
+import NavBar from "~/components/navBar";
+import LoadingComponent from "~/components/loadingComponent";
 const FormPage = () => {
+  const updateForm = api.form.updateAnswer.useMutation();
   const [formID, setFormID] = useState("");
-  // const [formData, setFormData]=useState<FormDataType>();
+  const [formData, setFormData] = useState<FormDataType>();
+  const [isSaving, setIsSaving] = useState(false);
   type FormDataType = {
     formID: string;
     formName: string;
@@ -42,73 +52,140 @@ const FormPage = () => {
     qnsID: string;
     formID: string;
     answer: string | null;
+    public_id: string | null;
     qnsOptionID: string | null;
     qnsOptionIDs: string[];
     dateTimeAns: Date | null;
     lastUpdated: Date | null;
   };
   useEffect(() => {
-      const fetchSession = async () => {
-        const session = await getSession();
-        const redirectTo = "/";
-        if (!session?.user) {
-          window.location.href = redirectTo;
-        }
-      };
-      fetchSession();
-      const searchParams = new URLSearchParams(window.location.search);
-      const formID2 = searchParams.get("formID");
-
-      if (!formID2) {
-        window.location.href = "/memberAccessPage/memberHome";
-        console.error("Form ID is missing");
-      } else {
-        setFormID(formID2);
+    const fetchSession = async () => {
+      const session = await getSession();
+      const redirectTo = "/";
+      if (!session?.user) {
+        window.location.href = redirectTo;
       }
-    
+    };
+    fetchSession();
+    const searchParams = new URLSearchParams(window.location.search);
+    const formID2 = searchParams.get("formID");
+
+    if (!formID2) {
+      window.location.href = "/memberAccessPage/memberHome";
+      console.error("Form ID is missing");
+    } else {
+      setFormID(formID2);
+    }
   }, []);
 
-  let { data: formData, isLoading: dataLoading } =api.form.getFormDetailsByFormID.useQuery({ formID });
-  if (dataLoading) {
-    return <div>loading</div>;
-  } else if (!formData) {
-    window.location.href = "/memberAccessPage/memberHome";
-    console.error("Form Details is missing");
-  } 
-
-
-
-
-  const updateFormData = async () => {
+  const {
+    data,
+    isLoading: dataLoading,
+    error,
+  } = api.form.getFormDetailsByFormID.useQuery(
+    { formID },
+    {
+      onSuccess: (formData1) => {
+        setFormData(formData1);
+      },
+      onError: () => {
+        (window.location.href = "/memberAccessPage/memberHome"),
+          console.error("Form Details is missing");
+      },
+    },
+  );
+  if (dataLoading || !formData) {
+    return <LoadingComponent />
+  }
+  
+  const handleSaveToDB = async (userQnsAnsArray: UserQnsAnsType[]) => {
     try {
-      // Send a request to update the form data in the database
-      // Use localFormData to get the updated values
-      // Example: await api.form.updateFormData(localFormData);
-      console.log("Form data updated in the database");
-    } catch (error) {
-      console.error("Error updating form data:", error);
+      await updateForm.mutateAsync({ answers: userQnsAnsArray });
+      console.log("Form created successfully");
+    } catch (err) {
+      console.error("Error Updating Form", err);
+    } finally {
+      setIsSaving(false);
     }
   };
-const handleInputChange = (questionID: string, answer: string | null) => {
-  console.log("handleInputChange called with:", questionID, answer);
-  if (formData) {
-    const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
-      uqa.qnsID === questionID ? { ...uqa, answer } : uqa
-    );
-    console.log(updatedUserQnsAns);
+  const debouncedSaveToDB = _.debounce(handleSaveToDB, 3000);
 
-    // Create a new formData object with the updated userQnsAns array
-    const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
-    // Set the state with the new formData object
-    formData = updatedFormData;
-    if (!formData) {
-      window.location.href = "/memberAccessPage/memberHome";
-      console.error("Form Details is missing");
-    } 
-    console.log("Form data updated", updatedFormData);
-  }
-};
+  const handleSaveOrPrint = async (e: React.FormEvent) => {
+  
+    window.print();
+  };
+  
+  
+  
+
+  const handleInputChange = (questionID: string, answer: string | null) => {
+    console.log("handleInputChange called with:", questionID, answer);
+    if (formData) {
+      const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
+        uqa.qnsID === questionID ? { ...uqa, answer } : uqa,
+      );
+      console.log(updatedUserQnsAns);
+
+      const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
+
+      if (!updatedFormData) {
+        window.location.href = "/memberAccessPage/memberHome";
+        console.error("Form Details is missing");
+      }
+
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
+      console.log("Form data updated", updatedFormData);
+    }
+  };
+
+  const handleImageUpload = (
+    questionID: string,
+    result: CldUploadWidgetResults
+  ) => {
+    const info = result.info as object;
+    let answer = "";
+    let public_id = "";
+    if ("secure_url" in info && "public_id" in info) {
+      answer = info.secure_url as string;
+      public_id = info.public_id as string;
+    }
+    if (formData) {
+      const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
+        uqa.qnsID === questionID ? { ...uqa, answer, public_id } : uqa
+      );
+  
+      const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
+  
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
+  
+      console.log("Form data updated", updatedFormData);
+    }
+  };
+  
+
+  const handleImageRemove = (
+    questionID: string
+  ) => {
+    if (formData) {
+      const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
+        uqa.qnsID === questionID ? { ...uqa, answer:null, public_id:null } : uqa,
+      );
+      console.log(updatedUserQnsAns);
+
+      const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
+
+
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
+      console.log("Form data updated", updatedFormData);
+    }
+  };
 
   const handleDropdownChange = (
     questionID: string,
@@ -117,19 +194,20 @@ const handleInputChange = (questionID: string, answer: string | null) => {
     console.log("handleInputChange called with:", questionID, selectedValue);
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
-        uqa.qnsID === questionID ? { ...uqa,qnsOptionID:selectedValue } : uqa
+        uqa.qnsID === questionID ? { ...uqa, qnsOptionID: selectedValue } : uqa,
       );
       console.log(updatedUserQnsAns);
-  
-      // Create a new formData object with the updated userQnsAns array
+
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
-  
-      // Set the state with the new formData object
-      formData = updatedFormData;
-      if (!formData) {
+
+      if (!updatedFormData) {
         window.location.href = "/memberAccessPage/memberHome";
         console.error("Form Details is missing");
-      } 
+      }
+
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
@@ -138,7 +216,27 @@ const handleInputChange = (questionID: string, answer: string | null) => {
     questionID: string,
     selectedValues: string[],
   ) => {
-    // Implement your logic to handle multi-select changes
+    console.log("handleInputChange called with:", questionID, selectedValues);
+    if (formData) {
+      const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
+        uqa.qnsID === questionID
+          ? { ...uqa, qnsOptionIDs: selectedValues }
+          : uqa,
+      );
+      console.log(updatedUserQnsAns);
+
+      const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
+
+      if (!updatedFormData) {
+        window.location.href = "/memberAccessPage/memberHome";
+        console.error("Form Details is missing");
+      }
+
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
+      console.log("Form data updated", updatedFormData);
+    }
   };
 
   const handleRadioChange = (
@@ -148,19 +246,19 @@ const handleInputChange = (questionID: string, answer: string | null) => {
     console.log("handleInputChange called with:", questionID, selectedValue);
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
-        uqa.qnsID === questionID ? { ...uqa,qnsOptionID:selectedValue } : uqa
+        uqa.qnsID === questionID ? { ...uqa, qnsOptionID: selectedValue } : uqa,
       );
       console.log(updatedUserQnsAns);
-  
-      // Create a new formData object with the updated userQnsAns array
+
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
-  
-      // Set the state with the new formData object
-      formData = updatedFormData;
-      if (!formData) {
+
+      if (!updatedFormData) {
         window.location.href = "/memberAccessPage/memberHome";
         console.error("Form Details is missing");
-      } 
+      }
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
@@ -169,19 +267,19 @@ const handleInputChange = (questionID: string, answer: string | null) => {
     console.log("handleInputChange called with:", questionID, selectedDate);
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
-        uqa.qnsID === questionID ? { ...uqa,dateTimeAns:selectedDate } : uqa
+        uqa.qnsID === questionID ? { ...uqa, dateTimeAns: selectedDate } : uqa,
       );
       console.log(updatedUserQnsAns);
-  
-      // Create a new formData object with the updated userQnsAns array
+
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
-  
-      // Set the state with the new formData object
-      formData = updatedFormData;
-      if (!formData) {
+
+      if (!updatedFormData) {
         window.location.href = "/memberAccessPage/memberHome";
         console.error("Form Details is missing");
-      } 
+      }
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
@@ -190,31 +288,57 @@ const handleInputChange = (questionID: string, answer: string | null) => {
     console.log("handleInputChange called with:", questionID, selectedTime);
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
-        uqa.qnsID === questionID ? { ...uqa,dateTimeAns:selectedTime } : uqa
+        uqa.qnsID === questionID ? { ...uqa, dateTimeAns: selectedTime } : uqa,
       );
       console.log(updatedUserQnsAns);
-  
-      // Create a new formData object with the updated userQnsAns array
+
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
-  
-      // Set the state with the new formData object
-      formData = updatedFormData;
-      if (!formData) {
+
+      if (!updatedFormData) {
         window.location.href = "/memberAccessPage/memberHome";
         console.error("Form Details is missing");
-      } 
+      }
+
+      setFormData(updatedFormData);
+      setIsSaving(true);
+      debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
 
+
+
+  const handleNavigateBack = () => {
+    window.history.back();
+  };
+
   return (
     <div>
-      <section className="mx-auto mt-20 max-w-4xl rounded-md bg-indigo-600 p-6 shadow-md dark:bg-gray-800">
-        <h1 className="text-xl font-bold capitalize text-white dark:text-white">
-          {formData?.formName}
-        </h1>
+      <NavBar />
+      <section className="bg-theme_green mx-auto my-10 max-w-4xl rounded-md p-6 shadow-md ">
+        <div className="flex justify-end flex-end my-3">
+          {isSaving&&
+          <div className="flex justify-center"><Download className="text-white" /><h1 className="mt-1 mx-2  text-sm font-bold  text-white">Saving...</h1></div>||
+          <div className="flex justify-center"><Download className="text-white" /><h1 className="mt-1 mx-2 text-sm font-bold text-white">All Changes Saved</h1></div>}
+
+        </div>
+        <div className="m-2 flex justify-between ">
+          <h1 className="mt-2 text-3xl font-bold capitalize text-black">
+            {formData?.formName}
+          </h1>
+          <div
+            className="bg-theme_purple/90 hover:bg-theme_purple flex cursor-pointer items-center rounded-md p-2"
+            onClick={handleNavigateBack}
+          >
+            <MoveLeft className="mx-3 my-2 cursor-pointer text-white" />
+            <h1 className="my-2 text-sm font-bold capitalize text-white">
+              BACK
+            </h1>
+          </div>
+        </div>
+
         <form>
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-1 gap-6" >
             {formData?.questions?.map((question) => (
               <div key={question.qnsID}>
                 {question.questionType === "Input Field" && (
@@ -316,13 +440,37 @@ const handleInputChange = (questionID: string, answer: string | null) => {
                     }
                   />
                 )}
+                {question.questionType === "Image" && (
+                  <ImageUploadField
+                    questionID={question.qnsID}
+                    question={question.question}
+                    public_id={
+                      formData?.userQnsAns.find(
+                        (uqa) => uqa.qnsID === question.qnsID,
+                      )?.public_id ?? null
+                    }
+                    onChangeUpload={(result: CldUploadWidgetResults) =>
+                      handleImageUpload(question.qnsID, result)
+                    }
+                    onChangeRemove={() =>
+                      handleImageRemove(question.qnsID)
+                    }
+                    answer={
+                      formData?.userQnsAns.find(
+                        (uqa) => uqa.qnsID === question.qnsID,
+                      )?.answer ?? null
+                    }
+                  />
+                )}
               </div>
             ))}
           </div>
           <div className="mt-6 flex justify-end">
-            <button className="transform rounded-md bg-pink-500 px-6 py-2 leading-5 text-white transition-colors duration-200 hover:bg-pink-700 focus:bg-gray-600 focus:outline-none">
-              Save
-            </button>
+            <input
+              className="bg-theme_orange text-center transform rounded-md px-6 py-2 leading-5 text-white transition-colors duration-200 hover:bg-pink-700 cursor-pointer focus:outline-none"
+              value="Print Or Save Form"
+              onClick={handleSaveOrPrint}
+            />
           </div>
         </form>
       </section>

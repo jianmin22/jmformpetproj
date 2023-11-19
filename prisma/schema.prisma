@@ -87,6 +87,7 @@ model UserQnsAns {
   qnsID        String
   formID       String
   answer       String?
+  public_id    String?
   qnsOptionID String?
   qnsOptionIDs String[]
   dateTimeAns DateTime?
