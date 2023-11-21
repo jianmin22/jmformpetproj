@@ -51,6 +51,7 @@ const RadioButtonField: React.FC<RadioButtonFieldProps> = ({
               checked={ansOptionID === option.qnsOptionID}
               onChange={handleOptionChange}
               className="mr-2"
+              required
             />
             <label
               htmlFor={`${userQnsAnsID}_${option.qnsOptionID}`}

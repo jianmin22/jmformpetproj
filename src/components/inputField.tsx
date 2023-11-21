@@ -34,6 +34,7 @@ const InputField: React.FC<InputFieldProps> = ({
         value={answer}
         onChange={handleInputChange}
         className="mt-2 block w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring"
+        required
       />
     </div>
   );

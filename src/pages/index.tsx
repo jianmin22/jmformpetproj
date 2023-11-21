@@ -9,7 +9,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const session = await getSession();
-      const redirectTo = "/memberAccessPage/memberHome";
+      const redirectTo = "/";
       if (session?.user) {
         window.location.href = redirectTo;
       }
@@ -59,7 +59,7 @@ function AuthShowcase() {
         className="rounded-md bg-theme_green/90 px-10 py-3 mt-3 font-semibold text-white no-underline transition hover:bg-theme_green"
         onClick={()=>signIn()}
       >
-        {sessionData ? "Sign out" : "Sign in"}
+        {"Sign in"}
       </button>
     </div>
   );

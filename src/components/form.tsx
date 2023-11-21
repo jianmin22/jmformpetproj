@@ -13,21 +13,18 @@ import { Download } from "lucide-react";
 import { CldUploadWidgetResults } from "next-cloudinary";
 import { api } from "~/utils/api";
 import { MoveLeft } from "lucide-react";
-import { result } from "lodash";
 import NavBar from "~/components/navBar";
 import LoadingComponent from "~/components/loadingComponent";
-const FormPage = () => {
+const FormPage = ({ formID }: { formID: string })  => {
   const updateForm = api.form.updateAnswer.useMutation();
-  const [formID, setFormID] = useState("");
   const [formData, setFormData] = useState<FormDataType>();
   const [isSaving, setIsSaving] = useState(false);
   type FormDataType = {
-    formID: string;
     formName: string;
     createdUserID: string;
     creationDate: Date;
     questions: QuestionDetails[];
-    userQnsAns: UserQnsAnsType[]; // Include the FormData type here
+    userQnsAns: UserQnsAnsType[];
   };
   type QuestionDetails = {
     qnsID: string;
@@ -45,7 +42,6 @@ const FormPage = () => {
     option: string;
     qnsID: string;
   };
-  // Now, your full FormData type
   type UserQnsAnsType = {
     userQnsAnsID: string;
     userID: string;
@@ -59,24 +55,11 @@ const FormPage = () => {
     lastUpdated: Date | null;
   };
   useEffect(() => {
-    const fetchSession = async () => {
-      const session = await getSession();
-      const redirectTo = "/";
-      if (!session?.user) {
-        window.location.href = redirectTo;
-      }
-    };
-    fetchSession();
-    const searchParams = new URLSearchParams(window.location.search);
-    const formID2 = searchParams.get("formID");
-
-    if (!formID2) {
-      window.location.href = "/memberAccessPage/memberHome";
-      console.error("Form ID is missing");
-    } else {
-      setFormID(formID2);
+    if(!formID){
+      window.location.href = "/memberHome";
     }
   }, []);
+
 
   const {
     data,
@@ -89,7 +72,7 @@ const FormPage = () => {
         setFormData(formData1);
       },
       onError: () => {
-        (window.location.href = "/memberAccessPage/memberHome"),
+        (window.location.href = "/memberHome"),
           console.error("Form Details is missing");
       },
     },
@@ -108,11 +91,11 @@ const FormPage = () => {
       setIsSaving(false);
     }
   };
-  const debouncedSaveToDB = _.debounce(handleSaveToDB, 3000);
+  const debouncedSaveToDB = _.debounce(handleSaveToDB, 1000);
 
 
   const handleSaveOrPrint = async (e: React.FormEvent) => {
-  
+  e.preventDefault()
     window.print();
   };
   
@@ -159,9 +142,10 @@ const FormPage = () => {
   
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
   
-      setFormData(updatedFormData);
+      
       setIsSaving(true);
       debouncedSaveToDB(updatedFormData.userQnsAns);
+      setFormData(updatedFormData);
   
       console.log("Form data updated", updatedFormData);
     }
@@ -337,7 +321,7 @@ const FormPage = () => {
           </div>
         </div>
 
-        <form>
+        <form onSubmit={handleSaveOrPrint}>
           <div className="mt-4 grid grid-cols-1 gap-6" >
             {formData?.questions?.map((question) => (
               <div key={question.qnsID}>
@@ -460,6 +444,7 @@ const FormPage = () => {
                         (uqa) => uqa.qnsID === question.qnsID,
                       )?.answer ?? null
                     }
+                    
                   />
                 )}
               </div>
@@ -467,9 +452,9 @@ const FormPage = () => {
           </div>
           <div className="mt-6 flex justify-end">
             <input
+            type="submit"
               className="bg-theme_orange text-center transform rounded-md px-6 py-2 leading-5 text-white transition-colors duration-200 hover:bg-pink-700 cursor-pointer focus:outline-none"
               value="Print Or Save Form"
-              onClick={handleSaveOrPrint}
             />
           </div>
         </form>

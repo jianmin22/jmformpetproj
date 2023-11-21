@@ -312,27 +312,27 @@ export const formRouter = createTRPCRouter({
   }),
 
 
-    uploadFile: publicProcedure
-    .input(z.object({ file: z.object({ path: z.string() }) }))
-    .mutation(async ({ input }) => {
-      try {
-        const { file } = input;
+    // uploadFile: publicProcedure
+    // .input(z.object({ file: z.object({ path: z.string() }) }))
+    // .mutation(async ({ input }) => {
+    //   try {
+    //     const { file } = input;
   
-        // Assuming 'file' is a FormData instance
-        const cloudinaryResponse = await cloudinary.uploader.upload(
-          file.path,
-          {
-            folder: 'files',
-            resource_type: 'auto', // Automatically detect the resource type
-          }
-        );
+    //     // Assuming 'file' is a FormData instance
+    //     const cloudinaryResponse = await cloudinary.uploader.upload(
+    //       file.path,
+    //       {
+    //         folder: 'files',
+    //         resource_type: 'auto', // Automatically detect the resource type
+    //       }
+    //     );
   
-        return { fileUrl: cloudinaryResponse.secure_url };
-      } catch (error) {
-        console.error(error);
-        throw new Error('Failed to upload file to Cloudinary');
-      }
-    }),
+    //     return { fileUrl: cloudinaryResponse.secure_url };
+    //   } catch (error) {
+    //     console.error(error);
+    //     throw new Error('Failed to upload file to Cloudinary');
+    //   }
+    // }),
   
 
 });

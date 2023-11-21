@@ -53,6 +53,7 @@ const MultiSelectCheckboxes: React.FC<MultiSelectCheckboxesProps> = ({
             value={option.qnsOptionID}
             checked={ansOptionIDs.includes(option.qnsOptionID)}
             onChange={handleCheckboxChange}
+            required
           />
           <label htmlFor={`${userQnsAnsID}_${option.qnsOptionID}`} className="ml-2 text-gray-700 dark:text-gray-300">
             {option.option}

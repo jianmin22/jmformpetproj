@@ -45,18 +45,12 @@ const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
     },
     {
       questionNumber: 6,
-      question: "Add a file:",
-      questionType: "File Upload",
-      options: [],
-    },
-    {
-      questionNumber: 7,
       question: "Choose a date:",
       questionType: "Date Picker",
       options: [],
     },
     {
-      questionNumber: 8,
+      questionNumber: 7,
       question: "Choose a time:",
       questionType: "Time Picker",
       options: [],

@@ -6,16 +6,16 @@ import { api } from "~/utils/api";
 import AddForm from "~/components/addForm";
 import ShowAllFormNames from "~/components/showAllFormNames";
 export default function HomeMember() {
-  useEffect(() => {
-    const fetchData = async () => {
-      const session = await getSession();
-      const redirectTo = "/";
-      if (!session?.user) {
-        window.location.href = redirectTo;
-      }
-    };
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const session = await getSession();
+  //     const redirectTo = "/";
+  //     if (!session?.user) {
+  //       window.location.href = redirectTo;
+  //     }
+  //   };
+  //   fetchData();
+  // }, []);
   const [refreshKey, setRefreshKey] = useState(0);
   const handleFormAdded = () => {
     setRefreshKey((prevKey) => prevKey + 1);
