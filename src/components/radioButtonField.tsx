@@ -34,7 +34,7 @@ const RadioButtonField: React.FC<RadioButtonFieldProps> = ({
         {question}
       </label>
       <div className="mt-2">
-        {optionDetails.map((option) => (
+        {optionDetails.map((option, index) => (
           <div key={option.qnsOptionID} className="flex items-center">
             <input
               type="radio"
@@ -43,7 +43,8 @@ const RadioButtonField: React.FC<RadioButtonFieldProps> = ({
               checked={ansOptionID === option.qnsOptionID}
               onChange={handleOptionChange}
               className="mr-2"
-              required
+              name={questionID!}
+              required={index === optionDetails.length - 1} 
             />
             <label
               htmlFor={`${userQnsAnsID}_${option.qnsOptionID}`}

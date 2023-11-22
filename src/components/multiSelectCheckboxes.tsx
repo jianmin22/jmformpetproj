@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '~/utils/api';
 import LoadingComponent from './loadingComponent';
 import { MultiSelectCheckboxesProps } from '~/types/MultiSelectCheckboxesProps';
@@ -13,6 +13,7 @@ const MultiSelectCheckboxes: React.FC<MultiSelectCheckboxesProps> = ({
 }) => {
   const { data: optionDetails, isLoading: dataLoading } = api.form.getOptionDetails.useQuery({ optionIDs });
   const redirectTo = '/';
+  const [isRequired, setIsRequired] = useState<boolean>(true);
 
   useEffect(() => {
     if (!dataLoading && !optionDetails) {
@@ -25,7 +26,10 @@ const MultiSelectCheckboxes: React.FC<MultiSelectCheckboxesProps> = ({
     const updatedValues = e.target.checked
       ? [...ansOptionIDs, selectedValue]
       : ansOptionIDs.filter((value) => value !== selectedValue);
+
     onChange(updatedValues);
+    const atLeastOneChecked = updatedValues.length > 0;
+    setIsRequired(!atLeastOneChecked);
   };
 
   if (dataLoading) {
@@ -45,7 +49,8 @@ const MultiSelectCheckboxes: React.FC<MultiSelectCheckboxesProps> = ({
             value={option.qnsOptionID}
             checked={ansOptionIDs.includes(option.qnsOptionID)}
             onChange={handleCheckboxChange}
-            required
+            name={questionID}
+            required={isRequired}
           />
           <label htmlFor={`${userQnsAnsID}_${option.qnsOptionID}`} className="ml-2 text-gray-700 dark:text-gray-300">
             {option.option}

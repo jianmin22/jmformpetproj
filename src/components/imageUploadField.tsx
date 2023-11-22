@@ -30,7 +30,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   return (
     <div>
       <label className="text-black" htmlFor={questionID}>
-        {question}
+        {question} (optional)
       </label>
 
       <CldUploadButton
