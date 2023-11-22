@@ -13,11 +13,16 @@ const MultiSelectCheckboxes: React.FC<MultiSelectCheckboxesProps> = ({
 }) => {
   const { data: optionDetails, isLoading: dataLoading } = api.form.getOptionDetails.useQuery({ optionIDs });
   const redirectTo = '/';
-  const [isRequired, setIsRequired] = useState<boolean>(true);
+  const [isRequired, setIsRequired] = useState<boolean>();
 
   useEffect(() => {
     if (!dataLoading && !optionDetails) {
       window.location.href = redirectTo;
+    }
+    if(ansOptionIDs.length>0){
+      setIsRequired(false);
+    }else{
+      setIsRequired(true);
     }
   }, [dataLoading, optionDetails]);
 
