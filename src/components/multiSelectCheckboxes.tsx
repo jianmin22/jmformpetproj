@@ -28,8 +28,12 @@ const MultiSelectCheckboxes: React.FC<MultiSelectCheckboxesProps> = ({
       : ansOptionIDs.filter((value) => value !== selectedValue);
 
     onChange(updatedValues);
-    const atLeastOneChecked = updatedValues.length > 0;
-    setIsRequired(!atLeastOneChecked);
+    if(updatedValues.length>0){
+      setIsRequired(false);
+    }else{
+      setIsRequired(true);
+    }
+    
   };
 
   if (dataLoading) {
