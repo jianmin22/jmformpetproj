@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-
-interface InputFieldProps {
-  question: string;
-  userQnsAnsID: string;
-  questionID: string;
-  answer: string | null;
-  onChange: (answer: string) => void;
-}
+import { InputFieldProps } from "~/types/InputFieldProps";
 
 const InputField: React.FC<InputFieldProps> = ({
   question,

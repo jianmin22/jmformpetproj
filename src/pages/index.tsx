@@ -9,7 +9,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const session = await getSession();
-      const redirectTo = "/";
+      const redirectTo = "/memberHome";
       if (session?.user) {
         window.location.href = redirectTo;
       }

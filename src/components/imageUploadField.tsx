@@ -4,14 +4,7 @@ import { CldUploadButton, CldUploadWidgetResults } from "next-cloudinary";
 import { Img } from "react-image";
 import { Image } from "lucide-react";
 import {title } from "process";
-interface ImageUploadFieldProps {
-  question: string;
-  questionID: string;
-  answer: string | null;
-  public_id: string | null;
-  onChangeUpload: (result: CldUploadWidgetResults) => void;
-  onChangeRemove:()=>void;
-}
+import { ImageUploadFieldProps } from "~/types/ImageUploadFieldProps";
 
 const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   question,
@@ -37,7 +30,7 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   return (
     <div>
       <label className="text-black" htmlFor={questionID}>
-        {question}
+        {question} (optional)
       </label>
 
       <CldUploadButton

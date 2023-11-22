@@ -1,12 +1,5 @@
 import React from 'react';
-
-interface TimeFieldProps {
-  question: string;
-  userQnsAnsID: string;
-  questionID: string;
-  timeAns: Date | null; // Assuming timeAns is a string in the format 'HH:mm'
-  onChange: (timeAns: Date | null) => void;
-}
+import { TimeFieldProps } from '~/types/TimeFieldProps';
 
 const TimeField: React.FC<TimeFieldProps> = ({
   question,
@@ -31,7 +24,7 @@ const TimeField: React.FC<TimeFieldProps> = ({
 
   return (
     <div>
-      <label className="text-black" htmlFor={userQnsAnsID}>
+      <label className="text-black" htmlFor={questionID}>
         {question}
       </label>
       <input

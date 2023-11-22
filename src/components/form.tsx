@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { getSession } from "next-auth/react";
 import InputField from "~/components/inputField";
 import DropdownSelectField from "~/components/dropdownSelectField";
 import MultiSelectCheckboxes from "~/components/multiSelectCheckboxes";
@@ -15,56 +14,30 @@ import { api } from "~/utils/api";
 import { MoveLeft } from "lucide-react";
 import NavBar from "~/components/navBar";
 import LoadingComponent from "~/components/loadingComponent";
+import { FormDataType, UserQnsAnsType} from '~/types/Form'
+import { getSession } from "next-auth/react";
+
 const FormPage = ({ formID }: { formID: string })  => {
   const updateForm = api.form.updateAnswer.useMutation();
   const [formData, setFormData] = useState<FormDataType>();
   const [isSaving, setIsSaving] = useState(false);
-  type FormDataType = {
-    formName: string;
-    createdUserID: string;
-    creationDate: Date;
-    questions: QuestionDetails[];
-    userQnsAns: UserQnsAnsType[];
-  };
-  type QuestionDetails = {
-    qnsID: string;
-    questionNumber: number;
-    question: string;
-    questionType: string;
-    createdAt: Date;
-    updatedAt: Date | null;
-    formID: string;
-    options: QuestionOption[];
-  };
 
-  type QuestionOption = {
-    qnsOptionID: string;
-    option: string;
-    qnsID: string;
-  };
-  type UserQnsAnsType = {
-    userQnsAnsID: string;
-    userID: string;
-    qnsID: string;
-    formID: string;
-    answer: string | null;
-    public_id: string | null;
-    qnsOptionID: string | null;
-    qnsOptionIDs: string[];
-    dateTimeAns: Date | null;
-    lastUpdated: Date | null;
-  };
   useEffect(() => {
+    const fetchData = async () => {
+      const session = await getSession();
+      const redirectTo = "/";
+      if (!session?.user) {
+        window.location.href = redirectTo;
+      }
+    };
+    fetchData();
     if(!formID){
       window.location.href = "/memberHome";
     }
   }, []);
 
-
   const {
-    data,
     isLoading: dataLoading,
-    error,
   } = api.form.getFormDetailsByFormID.useQuery(
     { formID },
     {
@@ -99,8 +72,6 @@ const FormPage = ({ formID }: { formID: string })  => {
     window.print();
   };
   
-  
-  
 
   const handleInputChange = (questionID: string, answer: string | null) => {
     console.log("handleInputChange called with:", questionID, answer);
@@ -113,7 +84,7 @@ const FormPage = ({ formID }: { formID: string })  => {
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
       if (!updatedFormData) {
-        window.location.href = "/memberAccessPage/memberHome";
+        window.location.href = "/memberHome";
         console.error("Form Details is missing");
       }
 
@@ -185,7 +156,7 @@ const FormPage = ({ formID }: { formID: string })  => {
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
       if (!updatedFormData) {
-        window.location.href = "/memberAccessPage/memberHome";
+        window.location.href = "/memberHome";
         console.error("Form Details is missing");
       }
 
@@ -212,7 +183,7 @@ const FormPage = ({ formID }: { formID: string })  => {
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
       if (!updatedFormData) {
-        window.location.href = "/memberAccessPage/memberHome";
+        window.location.href = "/memberHome";
         console.error("Form Details is missing");
       }
 
@@ -237,7 +208,7 @@ const FormPage = ({ formID }: { formID: string })  => {
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
       if (!updatedFormData) {
-        window.location.href = "/memberAccessPage/memberHome";
+        window.location.href = "/memberHome";
         console.error("Form Details is missing");
       }
       setFormData(updatedFormData);
@@ -258,7 +229,7 @@ const FormPage = ({ formID }: { formID: string })  => {
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
       if (!updatedFormData) {
-        window.location.href = "/memberAccessPage/memberHome";
+        window.location.href = "/memberHome";
         console.error("Form Details is missing");
       }
       setFormData(updatedFormData);
@@ -279,7 +250,7 @@ const FormPage = ({ formID }: { formID: string })  => {
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
       if (!updatedFormData) {
-        window.location.href = "/memberAccessPage/memberHome";
+        window.location.href = "/memberHome";
         console.error("Form Details is missing");
       }
 
@@ -289,8 +260,6 @@ const FormPage = ({ formID }: { formID: string })  => {
       console.log("Form data updated", updatedFormData);
     }
   };
-
-
 
   const handleNavigateBack = () => {
     window.history.back();

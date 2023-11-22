@@ -5,7 +5,6 @@ import { Disclosure } from "@headlessui/react";
 import { useRouter } from "next/router";
 
 function AuthShowcase() {
-    const { data: sessionData } = useSession();
   
     return (
         <button
@@ -41,9 +40,8 @@ const NavBar = () => {
   return (
     <Disclosure as="nav" className="bg-white h-20 flex items-center justify-between shadow-md">
 
-  {({ open }) => (
     <div className="flex items-center justify-between w-full">
-      <div className="flex items-center cursor-pointer" onClick={()=>{window.location.href = "/memberAccessPage/memberHome";}}>
+      <div className="flex items-center cursor-pointer" onClick={()=>{window.location.href = "/memberHome";}}>
         <img
           className="h-8 w-auto ml-5"
           src="https://images.freeimages.com/fic/images/icons/1514/doraemon/256/doraemon.png"
@@ -66,7 +64,6 @@ const NavBar = () => {
             <AuthShowcase />
       </div>
     </div>
-  )}
 </Disclosure>
 
   );

@@ -1,15 +1,7 @@
-import React, {useState, useEffect} from "react";
+import React from "react";
 import { api } from "~/utils/api";
 import LoadingComponent from "./loadingComponent";
-
-interface DropdownSelectFieldProps {
-  question: string;
-  userQnsAnsID: string;
-  questionID: string;
-  ansOptionID: string|null;
-  optionIDs: string[];
-  onChange: (selectedValue: string) => void;
-}
+import { DropdownSelectFieldProps } from "~/types/DropdownSelectFieldProps";
 
 const DropdownSelectField: React.FC<DropdownSelectFieldProps> = ({
   question,

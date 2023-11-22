@@ -1,12 +1,9 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { api } from "~/utils/api";
-
+import { AddFormProps } from "~/types/AddFormProps";
 import { getSession } from 'next-auth/react';
 
-interface AddFormProps {
-  onFormAdded: Function;
-}
 const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
   const questionsArray = [
     {
@@ -17,25 +14,25 @@ const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
     },
     {
       questionNumber: 2,
-      question: "Select your favorite color:",
+      question: "Select your favorite color",
       questionType: "Multi Select Options",
       options: [{ option: "Red" }, { option: "Blue" }, { option: "Green" }],
     },
     {
       questionNumber: 3,
-      question: "Select your preferred size:",
+      question: "Select your preferred size",
       questionType: "Radio Select Options",
       options: [{ option: "Small" }, { option: "Medium" }, { option: "Large" }],
     },
     {
       questionNumber: 4,
-      question: "Upload an image:",
+      question: "Upload an image",
       questionType: "Image",
       options: [],
     },
     {
       questionNumber: 5,
-      question: "Choose your preferred city:",
+      question: "Choose your preferred city",
       questionType: "Dropdown Options",
       options: [
         { option: "New York" },
@@ -45,13 +42,13 @@ const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
     },
     {
       questionNumber: 6,
-      question: "Choose a date:",
+      question: "Choose a date",
       questionType: "Date Picker",
       options: [],
     },
     {
       questionNumber: 7,
-      question: "Choose a time:",
+      question: "Choose a time",
       questionType: "Time Picker",
       options: [],
     },
