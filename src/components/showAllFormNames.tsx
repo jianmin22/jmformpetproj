@@ -11,7 +11,7 @@ const ShowAllFormNames = () => {
     try {
       await deleteForm.mutateAsync({ formID }, {
         onSuccess: () => {
-         refetch()
+        refetch()
         },
         onError: (error) => {
           console.log(error.message)
