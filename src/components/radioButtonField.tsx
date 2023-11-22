@@ -1,15 +1,7 @@
 import React, {useEffect, useState} from "react";
 import { api } from "~/utils/api";
 import LoadingComponent from "./loadingComponent";
-
-interface RadioButtonFieldProps {
-  question: string;
-  userQnsAnsID: string;
-  questionID: string;
-  ansOptionID: string | null;
-  optionIDs: string[];
-  onChange: (selectedValue: string) => void;
-}
+import { RadioButtonFieldProps } from "~/types/RadioButtonFieldProps";
 
 const RadioButtonField: React.FC<RadioButtonFieldProps> = ({
   question,

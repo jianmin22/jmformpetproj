@@ -1,12 +1,9 @@
 import React from "react";
 import { Plus } from "lucide-react";
 import { api } from "~/utils/api";
-
+import { AddFormProps } from "~/types/AddFormProps";
 import { getSession } from 'next-auth/react';
 
-interface AddFormProps {
-  onFormAdded: Function;
-}
 const AddForm: React.FC<AddFormProps> = ({ onFormAdded })=> {
   const questionsArray = [
     {

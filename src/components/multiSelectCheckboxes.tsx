@@ -1,15 +1,7 @@
 import React, { useEffect } from 'react';
 import { api } from '~/utils/api';
 import LoadingComponent from './loadingComponent';
-
-interface MultiSelectCheckboxesProps {
-  question: string;
-  userQnsAnsID: string;
-  questionID: string;
-  ansOptionIDs: string[];
-  optionIDs: string[];
-  onChange: (selectedValues: string[]) => void;
-}
+import { MultiSelectCheckboxesProps } from '~/types/MultiSelectCheckboxesProps';
 
 const MultiSelectCheckboxes: React.FC<MultiSelectCheckboxesProps> = ({
   question,

@@ -3,10 +3,9 @@ import { api } from "~/utils/api";
 import { Trash2 } from "lucide-react";
 import LoadingComponent from "./loadingComponent";
 import Link from "next/link"
+
 const ShowAllFormNames = () => {
   const { data, isLoading: dataLoading, refetch } = api.form.getFormNamesByID.useQuery();
-
-
   const deleteForm = api.form.deleteForm.useMutation();
   const onClickDelete =async (formID: string) => {
     try {

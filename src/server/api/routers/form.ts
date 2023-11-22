@@ -4,19 +4,6 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import cloudinary from "~/server/cloudinary";
-type UserQnsAnsType = {
-  userQnsAnsID: string;
-  userID: string;
-  qnsID: string;
-  formID: string;
-  answer: string | null;
-  public_id: string | null;
-  qnsOptionID: string | null;
-  qnsOptionIDs: string[];
-  dateTimeAns: Date | null;
-  lastUpdated: Date | null;
-};
 export const formRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string() }))
@@ -309,30 +296,5 @@ export const formRouter = createTRPCRouter({
       console.error(error);
       throw new Error("Failed to update answers");
     }
-  }),
-
-
-    // uploadFile: publicProcedure
-    // .input(z.object({ file: z.object({ path: z.string() }) }))
-    // .mutation(async ({ input }) => {
-    //   try {
-    //     const { file } = input;
-  
-    //     // Assuming 'file' is a FormData instance
-    //     const cloudinaryResponse = await cloudinary.uploader.upload(
-    //       file.path,
-    //       {
-    //         folder: 'files',
-    //         resource_type: 'auto', // Automatically detect the resource type
-    //       }
-    //     );
-  
-    //     return { fileUrl: cloudinaryResponse.secure_url };
-    //   } catch (error) {
-    //     console.error(error);
-    //     throw new Error('Failed to upload file to Cloudinary');
-    //   }
-    // }),
-  
-
+  })
 });
