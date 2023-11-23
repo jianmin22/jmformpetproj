@@ -1,6 +1,5 @@
-import { signIn, signOut, useSession, getSession } from "next-auth/react";
+import { signIn, useSession, getSession } from "next-auth/react";
 import Head from "next/head";
-import Link from "next/link";
 import { useEffect } from "react";
 
 import { api } from "~/utils/api";
