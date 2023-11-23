@@ -6,7 +6,7 @@ import RadioButtonField from "~/components/radioButtonField";
 import DateField from "~/components/dateField";
 import TimeField from "~/components/timeField";
 import ImageUploadField from "~/components/imageUploadField";
-import _ from 'lodash';
+import _ from "lodash";
 import { Download } from "lucide-react";
 
 import { CldUploadWidgetResults } from "next-cloudinary";
@@ -14,31 +14,36 @@ import { api } from "~/utils/api";
 import { MoveLeft } from "lucide-react";
 import NavBar from "~/components/navBar";
 import LoadingComponent from "~/components/loadingComponent";
-import { FormDataType, UserQnsAnsType} from '~/types/Form'
+import { FormDataType, UserQnsAnsType } from "~/types/Form";
 import { getSession } from "next-auth/react";
 
-const FormPage = ({ formID }: { formID: string })  => {
+const FormPage = ({ formID }: { formID: string }) => {
   const updateForm = api.form.updateAnswer.useMutation();
   const [formData, setFormData] = useState<FormDataType>();
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const session = await getSession();
-      const redirectTo = "/";
-      if (!session?.user) {
-        window.location.href = redirectTo;
+      try {
+        const session = await getSession();
+        const redirectTo = "/";
+        if (!session?.user) {
+          window.location.href = redirectTo;
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        window.location.href = "/";
       }
     };
+
     fetchData();
-    if(!formID){
+
+    if (!formID) {
       window.location.href = "/memberHome";
     }
   }, []);
 
-  const {
-    isLoading: dataLoading,
-  } = api.form.getFormDetailsByFormID.useQuery(
+  const { isLoading: dataLoading } = api.form.getFormDetailsByFormID.useQuery(
     { formID },
     {
       onSuccess: (formData1) => {
@@ -51,9 +56,9 @@ const FormPage = ({ formID }: { formID: string })  => {
     },
   );
   if (dataLoading || !formData) {
-    return <LoadingComponent />
+    return <LoadingComponent />;
   }
-  
+
   const handleSaveToDB = async (userQnsAnsArray: UserQnsAnsType[]) => {
     try {
       await updateForm.mutateAsync({ answers: userQnsAnsArray });
@@ -66,14 +71,15 @@ const FormPage = ({ formID }: { formID: string })  => {
   };
   const debouncedSaveToDB = _.debounce(handleSaveToDB, 1000);
 
-
-  const handleSaveOrPrint = async (e: React.FormEvent) => {
-  e.preventDefault()
+  const handleSaveOrPrint = (e: React.FormEvent) => {
+    e.preventDefault();
     window.print();
   };
-  
 
-  const handleInputChange = (questionID: string, answer: string | null) => {
+  const handleInputChange = async (
+    questionID: string,
+    answer: string | null,
+  ) => {
     console.log("handleInputChange called with:", questionID, answer);
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
@@ -90,14 +96,14 @@ const FormPage = ({ formID }: { formID: string })  => {
 
       setFormData(updatedFormData);
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
 
-  const handleImageUpload = (
+  const handleImageUpload = async (
     questionID: string,
-    result: CldUploadWidgetResults
+    result: CldUploadWidgetResults,
   ) => {
     const info = result.info as object;
     let answer = "";
@@ -108,41 +114,38 @@ const FormPage = ({ formID }: { formID: string })  => {
     }
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
-        uqa.qnsID === questionID ? { ...uqa, answer, public_id } : uqa
+        uqa.qnsID === questionID ? { ...uqa, answer, public_id } : uqa,
       );
-  
+
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
-  
-      
+
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       setFormData(updatedFormData);
-  
+
       console.log("Form data updated", updatedFormData);
     }
   };
-  
 
-  const handleImageRemove = (
-    questionID: string
-  ) => {
+  const handleImageRemove = async (questionID: string) => {
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
-        uqa.qnsID === questionID ? { ...uqa, answer:null, public_id:null } : uqa,
+        uqa.qnsID === questionID
+          ? { ...uqa, answer: null, public_id: null }
+          : uqa,
       );
       console.log(updatedUserQnsAns);
 
       const updatedFormData = { ...formData, userQnsAns: updatedUserQnsAns };
 
-
       setFormData(updatedFormData);
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
 
-  const handleDropdownChange = (
+  const handleDropdownChange = async (
     questionID: string,
     selectedValue: string | null,
   ) => {
@@ -162,12 +165,12 @@ const FormPage = ({ formID }: { formID: string })  => {
 
       setFormData(updatedFormData);
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
 
-  const handleMultiSelectChange = (
+  const handleMultiSelectChange = async (
     questionID: string,
     selectedValues: string[],
   ) => {
@@ -189,12 +192,12 @@ const FormPage = ({ formID }: { formID: string })  => {
 
       setFormData(updatedFormData);
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
 
-  const handleRadioChange = (
+  const handleRadioChange = async (
     questionID: string,
     selectedValue: string | null,
   ) => {
@@ -213,12 +216,15 @@ const FormPage = ({ formID }: { formID: string })  => {
       }
       setFormData(updatedFormData);
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
 
-  const handleDateChange = (questionID: string, selectedDate: Date | null) => {
+  const handleDateChange = async (
+    questionID: string,
+    selectedDate: Date | null,
+  ) => {
     console.log("handleInputChange called with:", questionID, selectedDate);
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
@@ -234,12 +240,15 @@ const FormPage = ({ formID }: { formID: string })  => {
       }
       setFormData(updatedFormData);
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
 
-  const handleTimeChange = (questionID: string, selectedTime: Date | null) => {
+  const handleTimeChange = async (
+    questionID: string,
+    selectedTime: Date | null,
+  ) => {
     console.log("handleInputChange called with:", questionID, selectedTime);
     if (formData) {
       const updatedUserQnsAns = formData.userQnsAns.map((uqa) =>
@@ -256,7 +265,7 @@ const FormPage = ({ formID }: { formID: string })  => {
 
       setFormData(updatedFormData);
       setIsSaving(true);
-      debouncedSaveToDB(updatedFormData.userQnsAns);
+      await debouncedSaveToDB(updatedFormData.userQnsAns);
       console.log("Form data updated", updatedFormData);
     }
   };
@@ -268,19 +277,30 @@ const FormPage = ({ formID }: { formID: string })  => {
   return (
     <div>
       <NavBar />
-      <section className="bg-theme_green mx-auto my-10 max-w-4xl rounded-md p-6 shadow-md ">
-        <div className="flex justify-end flex-end my-3">
-          {isSaving&&
-          <div className="flex justify-center"><Download className="text-white" /><h1 className="mt-1 mx-2  text-sm font-bold  text-white">Saving...</h1></div>||
-          <div className="flex justify-center"><Download className="text-white" /><h1 className="mt-1 mx-2 text-sm font-bold text-white">All Changes Saved</h1></div>}
-
+      <section className="mx-auto my-10 max-w-4xl rounded-md bg-theme_green p-6 shadow-md ">
+        <div className="flex-end my-3 flex justify-end">
+          {(isSaving && (
+            <div className="flex justify-center">
+              <Download className="text-white" />
+              <h1 className="mx-2 mt-1  text-sm font-bold  text-white">
+                Saving...
+              </h1>
+            </div>
+          )) || (
+            <div className="flex justify-center">
+              <Download className="text-white" />
+              <h1 className="mx-2 mt-1 text-sm font-bold text-white">
+                All Changes Saved
+              </h1>
+            </div>
+          )}
         </div>
         <div className="m-2 flex justify-between ">
           <h1 className="mt-2 text-3xl font-bold capitalize text-black">
             {formData?.formName}
           </h1>
           <div
-            className="bg-theme_purple/90 hover:bg-theme_purple flex cursor-pointer items-center rounded-md p-2"
+            className="flex cursor-pointer items-center rounded-md bg-theme_purple/90 p-2 hover:bg-theme_purple"
             onClick={handleNavigateBack}
           >
             <MoveLeft className="mx-3 my-2 cursor-pointer text-white" />
@@ -291,7 +311,7 @@ const FormPage = ({ formID }: { formID: string })  => {
         </div>
 
         <form onSubmit={handleSaveOrPrint}>
-          <div className="mt-4 grid grid-cols-1 gap-6" >
+          <div className="mt-4 grid grid-cols-1 gap-6">
             {formData?.questions?.map((question) => (
               <div key={question.qnsID}>
                 {question.questionType === "Input Field" && (
@@ -302,7 +322,7 @@ const FormPage = ({ formID }: { formID: string })  => {
                     answer={
                       formData?.userQnsAns.find(
                         (uqa) => uqa.qnsID === question.qnsID,
-                      )?.answer || ""
+                      )?.answer ?? ""
                     }
                     onChange={(answer) =>
                       handleInputChange(question.qnsID, answer)
@@ -317,7 +337,7 @@ const FormPage = ({ formID }: { formID: string })  => {
                     ansOptionID={
                       formData?.userQnsAns.find(
                         (uqa) => uqa.qnsID === question.qnsID,
-                      )?.qnsOptionID || null
+                      )?.qnsOptionID ?? null
                     }
                     optionIDs={question.options.map(
                       (option) => option.qnsOptionID,
@@ -333,9 +353,9 @@ const FormPage = ({ formID }: { formID: string })  => {
                     userQnsAnsID={question.qnsID}
                     questionID={question.qnsID}
                     ansOptionIDs={
-                      (formData?.userQnsAns.find(
+                      formData.userQnsAns.find(
                         (uqa) => uqa.qnsID === question.qnsID,
-                      )?.qnsOptionIDs || []) as string[]
+                      )?.qnsOptionIDs ?? []
                     }
                     optionIDs={question.options.map(
                       (option) => option.qnsOptionID,
@@ -345,6 +365,7 @@ const FormPage = ({ formID }: { formID: string })  => {
                     }
                   />
                 )}
+
                 {question.questionType === "Radio Select Options" && (
                   <RadioButtonField
                     question={question.question}
@@ -353,7 +374,7 @@ const FormPage = ({ formID }: { formID: string })  => {
                     ansOptionID={
                       formData?.userQnsAns.find(
                         (uqa) => uqa.qnsID === question.qnsID,
-                      )?.qnsOptionID || ""
+                      )?.qnsOptionID ?? ""
                     }
                     optionIDs={question.options.map(
                       (option) => option.qnsOptionID,
@@ -371,7 +392,7 @@ const FormPage = ({ formID }: { formID: string })  => {
                     dateAns={
                       formData?.userQnsAns.find(
                         (uqa) => uqa.qnsID === question.qnsID,
-                      )?.dateTimeAns || null
+                      )?.dateTimeAns ?? null
                     }
                     onChange={(selectedDate) =>
                       handleDateChange(question.qnsID, selectedDate)
@@ -386,7 +407,7 @@ const FormPage = ({ formID }: { formID: string })  => {
                     timeAns={
                       formData?.userQnsAns.find(
                         (uqa) => uqa.qnsID === question.qnsID,
-                      )?.dateTimeAns || null
+                      )?.dateTimeAns ?? null
                     }
                     onChange={(selectedTime) =>
                       handleTimeChange(question.qnsID, selectedTime)
@@ -405,15 +426,12 @@ const FormPage = ({ formID }: { formID: string })  => {
                     onChangeUpload={(result: CldUploadWidgetResults) =>
                       handleImageUpload(question.qnsID, result)
                     }
-                    onChangeRemove={() =>
-                      handleImageRemove(question.qnsID)
-                    }
+                    onChangeRemove={() => handleImageRemove(question.qnsID)}
                     answer={
                       formData?.userQnsAns.find(
                         (uqa) => uqa.qnsID === question.qnsID,
                       )?.answer ?? null
                     }
-                    
                   />
                 )}
               </div>
@@ -421,8 +439,8 @@ const FormPage = ({ formID }: { formID: string })  => {
           </div>
           <div className="mt-6 flex justify-end">
             <input
-            type="submit"
-              className="bg-theme_orange text-center transform rounded-md px-6 py-2 leading-5 text-white transition-colors duration-200 hover:bg-pink-700 cursor-pointer focus:outline-none"
+              type="submit"
+              className="hover:bg-pink-700 transform cursor-pointer rounded-md bg-theme_orange px-6 py-2 text-center leading-5 text-white transition-colors duration-200 focus:outline-none"
               value="Print Or Save Form"
             />
           </div>

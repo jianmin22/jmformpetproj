@@ -39,7 +39,7 @@ const ShowAllFormNames = () => {
           key={index}
           className="flex flex-col items-center min-w-max bg-white rounded p-4 cursor-pointer m-2 "
         >
-          <h3 className="text-lg">Edit "{item.formName}" Now!</h3>
+          <h3 className="text-lg">Edit &quot;{item.formName}&quot; Now!</h3>
         </div>
         </Link>
         <Trash2 className="m-2 text-red-normal hover:text-red-dark" onClick={()=>onClickDelete(item.formID)}/>
